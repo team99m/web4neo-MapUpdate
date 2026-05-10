@@ -1,0 +1,27 @@
+.timeline { display: flex; flex-direction: column; gap: 0; padding: var(--space-2) 0; }
+.step { display: flex; align-items: flex-start; gap: var(--space-3); position: relative; padding-bottom: var(--space-4); }
+.step:last-child { padding-bottom: 0; }
+.line {
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border);
+}
+.step:last-child .line { display: none; }
+.lineDone { background: var(--color-primary); }
+.dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0; z-index: 1;
+  transition: all var(--transition-fast);
+}
+.dotDone { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+.dotCurrent { border-color: var(--color-warning); background: var(--color-warning); color: #fff; box-shadow: 0 0 0 4px rgba(239,159,39,0.2); }
+.dotPending { border-color: var(--color-border); background: var(--color-bg-secondary); color: var(--color-text-tertiary); }
+.info { display: flex; flex-direction: column; gap: 2px; min-height: 24px; justify-content: center; }
+.stepLabel { font-size: var(--text-sm); font-weight: var(--font-medium); color: var(--color-text); }
+.stepTime { font-size: var(--text-xs); color: var(--color-text-tertiary); }

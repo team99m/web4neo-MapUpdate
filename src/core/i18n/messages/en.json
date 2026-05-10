@@ -1,0 +1,56 @@
+{
+  "nav.home": "Home",
+  "nav.map": "Map",
+  "nav.report": "Report",
+  "nav.feed": "Feed",
+  "nav.transit": "Transit",
+
+  "issue.status.open": "Open",
+  "issue.status.in_progress": "In Progress",
+  "issue.status.resolved": "Resolved",
+  "issue.status.rejected": "Rejected",
+
+  "report.step.location": "Set Location",
+  "report.step.category": "Category",
+  "report.step.details": "Details",
+  "report.step.review": "Review",
+  "report.submit": "Submit Report",
+
+  "category.road": "Road Damage",
+  "category.flood": "Flooding",
+  "category.light": "Broken Light",
+  "category.trash": "Garbage",
+  "category.noise": "Noise",
+  "category.other": "Other",
+
+  "feed.post.placeholder": "What's happening in your area?",
+  "feed.empty": "No posts yet. Be the first.",
+
+  "transit.nearby": "Near Me",
+  "transit.route": "Route",
+  "transit.stop": "Stop",
+  "transit.alert": "Service Alert",
+
+  "auth.login": "Sign In",
+  "auth.register": "Sign Up",
+  "auth.logout": "Sign Out",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.username": "Username",
+  "auth.no_account": "Don't have an account?",
+  "auth.have_account": "Already have an account?",
+
+  "common.loading": "Loading…",
+  "common.error": "Something went wrong.",
+  "common.retry": "Try again",
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+  "common.confirm": "Confirm",
+  "common.delete": "Delete",
+  "common.search": "Search",
+  "common.filter": "Filter",
+  "common.all": "All",
+  "common.back": "Back",
+  "common.next": "Next",
+  "common.submit": "Submit"
+}

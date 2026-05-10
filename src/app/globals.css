@@ -1,0 +1,291 @@
+/* =============================================
+   Web4neo — Design System (Functional Core)
+   Module 0 — CSS Custom Properties & Base Styles
+   ============================================= */
+
+/* --- CSS Custom Properties (Design Tokens) --- */
+:root {
+  /* Colors — from WDD pin scheme + UI palette */
+  --color-primary: #1D9E75;
+  --color-primary-hover: #178a66;
+  --color-secondary: #378ADD;
+  --color-secondary-hover: #2d78c4;
+
+  --color-danger: #E24B4A;
+  --color-danger-hover: #c93f3e;
+  --color-warning: #EF9F27;
+  --color-warning-hover: #d98e1f;
+  --color-success: #1D9E75;
+  --color-info: #378ADD;
+
+  /* Issue status colors (from WDD Module 1.1) */
+  --color-status-open: #E24B4A;
+  --color-status-in-progress: #EF9F27;
+  --color-status-resolved: #1D9E75;
+  --color-status-rejected: #888780;
+
+  /* Transit type colors (from WDD Module 1.3) */
+  --color-transit-bus: #EF9F27;
+  --color-transit-bts: #1D9E75;
+  --color-transit-mrt: #378ADD;
+  --color-transit-boat: #185FA5;
+  --color-transit-arl: #D85A30;
+
+  /* Neutral palette */
+  --color-bg: #FFFFFF;
+  --color-bg-secondary: #F5F5F4;
+  --color-bg-tertiary: #EBEBEA;
+  --color-surface: #FFFFFF;
+  --color-border: #E0DFDD;
+  --color-border-hover: #C8C7C5;
+
+  --color-text: #1A1A1A;
+  --color-text-secondary: #6B6B6B;
+  --color-text-tertiary: #9B9B9B;
+  --color-text-inverse: #FFFFFF;
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Z-index layers */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal-backdrop: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-tooltip: 600;
+  --z-bottom-nav: 250;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Bottom nav height (for page padding) */
+  /* Bottom nav height (for page padding) */
+  --bottom-nav-height: 80px;
+  --header-height: 60px;
+}
+
+/* --- Base Reset --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+}
+
+input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+img, video, svg {
+  display: block;
+  max-width: 100%;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+/* --- GPU Acceleration Utilities (WDD §10) --- */
+.gpu-layer {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: y proximity;
+}
+
+.scroll-x {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* --- Animation Keyframes --- */
+@keyframes slideUp {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-12px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* --- Utility Classes --- */
+.animate-slide-up   { animation: slideUp var(--transition-normal) ease-out; }
+.animate-slide-down { animation: slideDown var(--transition-normal) ease-out; }
+.animate-fade-in    { animation: fadeIn var(--transition-normal) ease; }
+.animate-scale-in   { animation: scaleIn var(--transition-normal) ease-out; }
+.animate-pulse      { animation: pulse 2s ease-in-out infinite; }
+.animate-spin       { animation: spin 1s linear infinite; }
+
+/* Skeleton loading shimmer */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-bg-secondary) 25%, var(--color-bg-tertiary) 50%, var(--color-bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* --- Layout Helpers --- */
+.main-content {
+  padding-top: var(--header-height);
+  min-height: 100dvh;
+}
+
+.page-container {
+  width: 100%;
+  max-width: 768px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  padding-bottom: calc(var(--bottom-nav-height) + var(--space-8));
+}
+
+.page-full {
+  width: 100%;
+  height: calc(100dvh - var(--header-height) - var(--bottom-nav-height));
+}
+
+/* Visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Scrollbar Styling --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-hover);
+}
+
+/* --- Responsive breakpoints reference ---
+   Mobile:  390px (base)
+   Tablet:  768px
+   Desktop: 1024px
+*/

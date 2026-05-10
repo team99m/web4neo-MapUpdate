@@ -1,0 +1,20 @@
+.mapPage { position: fixed; top: var(--header-height); left: 0; right: 0; bottom: var(--bottom-nav-height); z-index: 0; }
+.loading {
+  display: flex; align-items: center; justify-content: center;
+  height: 100%; font-size: var(--text-lg); color: var(--color-text-secondary);
+}
+.reportBtn {
+  position: absolute; bottom: var(--space-6); right: var(--space-4);
+  z-index: var(--z-sticky);
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary), #15b886);
+  color: #fff; font-size: 28px; border: none; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(29,158,117,0.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.reportBtn:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(29,158,117,0.5); }
+/* Leaflet popup override for IssueCard */
+:global(.leaflet-popup-content-wrapper) { padding: 0 !important; border-radius: var(--radius-lg) !important; }
+:global(.leaflet-popup-content) { margin: 0 !important; min-width: 240px; }
+:global(.leaflet-popup-close-button) { z-index: 10; }

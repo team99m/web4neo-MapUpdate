@@ -1,0 +1,21 @@
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  animation: slideUp 200ms ease-out;
+}
+
+.interactive {
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.interactive:hover {
+  border-color: var(--color-border-hover);
+}
+
+.interactive:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
