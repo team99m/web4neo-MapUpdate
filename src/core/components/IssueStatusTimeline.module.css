@@ -1,0 +1,74 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-4) 0;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: var(--space-6);
+}
+
+.historyList::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background-color: var(--color-border);
+}
+
+.historyItem {
+  position: relative;
+  padding-bottom: var(--space-6);
+}
+
+.historyItem:last-child {
+  padding-bottom: 0;
+}
+
+.historyDot {
+  position: absolute;
+  left: -23px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px var(--color-bg-primary);
+  z-index: 1;
+}
+
+.historyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.historyStatus {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  text-transform: capitalize;
+  color: var(--color-text-primary);
+}
+
+.historyNote {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-secondary);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-1);
+  border-left: 3px solid var(--color-primary);
+}
+
+.historyTime {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin-top: var(--space-1);
+}

@@ -39,7 +39,7 @@ export function ActionWindow({ isOpen, onClose }: ActionWindowProps) {
         </div>
 
         <div className={styles.grid}>
-          <Link href="/map/report" className={styles.actionCard} onClick={onClose}>
+          <Link href="/report" className={styles.actionCard} onClick={onClose}>
             <div className={cn(styles.iconWrapper, styles.reportBg)}>📢</div>
             <div className={styles.actionInfo}>
               <span className={styles.actionTitle}>Report Issue</span>

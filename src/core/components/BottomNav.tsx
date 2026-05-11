@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/core/utils/cn'
 import { useTranslation } from '@/core/i18n/useTranslation'
+import { useNotification } from '@/core/hooks/useNotification'
 import { ActionWindow } from './ActionWindow'
 import styles from './BottomNav.module.css'
 
@@ -21,8 +22,8 @@ const leftNavItems: NavItem[] = [
 ]
 
 const rightNavItems: NavItem[] = [
+  { key: 'notifications', href: '/notifications', icon: '🔔', labelKey: 'nav.notifications' },
   { key: 'map', href: '/map', icon: '🗺️', labelKey: 'nav.map' },
-  { key: 'transit', href: '/transit', icon: '🚌', labelKey: 'nav.transit' },
 ]
 
 /**
@@ -32,6 +33,7 @@ const rightNavItems: NavItem[] = [
 export function BottomNav() {
   const pathname = usePathname()
   const { t } = useTranslation()
+  const { unreadCount } = useNotification()
   const [isActionWindowOpen, setActionWindowOpen] = useState(false)
 
   const isActive = (href: string) => {
@@ -46,10 +48,20 @@ export function BottomNav() {
       className={cn(styles.item, isActive(item.href) && styles.active)}
       aria-current={isActive(item.href) ? 'page' : undefined}
     >
-      <span className={styles.icon}>{item.icon}</span>
+      <span className={styles.icon}>
+        {item.icon}
+        {item.key === 'notifications' && unreadCount > 0 && (
+          <span className={styles.badge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+        )}
+      </span>
       <span className={styles.label}>{t(item.labelKey)}</span>
     </Link>
   )
+
+  // Hide BottomNav on specific pages (like post detail or create post)
+  const isPostDetail = pathname.startsWith('/post/')
+  
+  if (isPostDetail) return null
 
   return (
     <>

@@ -17,14 +17,16 @@ export function useToast() {
 }
 
 import { Header } from '@/core/components/Header'
+import { DesktopSidebar } from '@/core/components/DesktopSidebar'
 
 /**
  * Providers — wraps the entire app with:
  * - AuthProvider (Supabase auth session)
  * - I18nProvider (translations)
  * - ToastContainer (notifications)
- * - Header (top navigation)
- * - BottomNav (mobile navigation)
+ * - Header (top navigation — hidden on desktop)
+ * - DesktopSidebar (persistent sidebar — hidden on mobile)
+ * - BottomNav (mobile navigation — hidden on desktop)
  */
 export function Providers({ children }: { children: React.ReactNode }) {
   const { toasts, addToast, dismissToast } = useToastState()
@@ -33,8 +35,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <AuthProvider>
       <I18nProvider>
         <ToastContext.Provider value={addToast}>
-          <Header />
-          <main className="main-content">{children}</main>
+          <div className="app-shell">
+            <DesktopSidebar />
+            <div className="app-main">
+              <Header />
+              <main className="main-content">{children}</main>
+            </div>
+          </div>
           <BottomNav />
           <ToastContainer toasts={toasts} onDismiss={dismissToast} />
         </ToastContext.Provider>

@@ -12,5 +12,6 @@ export interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>
   demoLogin: () => Promise<void>
   register: (email: string, password: string, username: string) => Promise<void>
+  lineLogin: () => Promise<void>
   logout: () => Promise<void>
 }

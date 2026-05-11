@@ -63,6 +63,28 @@
   font-size: 20px;
   line-height: 1;
   transition: transform var(--transition-fast);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #FF4757;
+  color: white;
+  font-size: 10px;
+  font-weight: var(--font-bold);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
 }
 
 .label {
@@ -102,4 +124,11 @@
   font-size: 32px;
   font-weight: 300;
   line-height: 1;
+}
+
+/* Hide bottom nav on desktop — sidebar takes over */
+@media (min-width: 768px) {
+  .navWrapper {
+    display: none;
+  }
 }

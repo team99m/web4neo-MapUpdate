@@ -6,6 +6,7 @@ import { supabase } from '@/core/supabase/client'
 import { useAuth } from '@/core/auth/useAuth'
 import { CATEGORY_CONFIG } from '../types'
 import type { IssueCategory, ReportStep } from '../types'
+import { useToast } from '@/app/providers'
 import styles from './page.module.css'
 
 const STEPS: { key: ReportStep; label: string }[] = [
@@ -20,6 +21,7 @@ const CATEGORIES = Object.entries(CATEGORY_CONFIG) as [IssueCategory, { label: s
 export default function ReportPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const addToast = useToast()
   const [step, setStep] = useState(0)
   const [lat, setLat] = useState<number | null>(null)
   const [lng, setLng] = useState<number | null>(null)
@@ -134,7 +136,26 @@ export default function ReportPage() {
   }
 
   const handleSubmit = async () => {
-    if (!user || !lat || !lng || !category || !title.trim()) return
+    if (!user) {
+      addToast('You must be logged in to submit a report', 'error')
+      return
+    }
+    if (!lat || !lng) {
+      addToast('Please select a location on the map', 'warning')
+      setStep(0)
+      return
+    }
+    if (!category) {
+      addToast('Please select a category', 'warning')
+      setStep(1)
+      return
+    }
+    if (!title.trim()) {
+      addToast('Please enter a title', 'warning')
+      setStep(2)
+      return
+    }
+
     setSubmitting(true)
     try {
       // Upload photos
@@ -142,7 +163,7 @@ export default function ReportPage() {
       for (const photo of photos) {
         const ext = photo.name.split('.').pop() || 'webp'
         // Fallback for crypto.randomUUID if not in secure context
-        const uuid = typeof crypto.randomUUID === 'function' 
+        const uuid = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
           ? crypto.randomUUID() 
           : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
         
@@ -150,7 +171,7 @@ export default function ReportPage() {
         
         const { error: upErr } = await supabase.storage
           .from('issue-images')
-          .upload(fileName, photo, { cacheControl: '3600' })
+          .upload(fileName, photo, { cacheControl: '3600', upsert: true })
         
         if (upErr) {
           console.error('Photo upload failed:', upErr)
@@ -158,8 +179,8 @@ export default function ReportPage() {
           continue
         }
 
-        const { data } = supabase.storage.from('issue-images').getPublicUrl(fileName)
-        imageUrls.push(data.publicUrl)
+        const { data: publicUrlData } = supabase.storage.from('issue-images').getPublicUrl(fileName)
+        imageUrls.push(publicUrlData.publicUrl)
       }
 
       const { data, error } = await supabase
@@ -179,7 +200,10 @@ export default function ReportPage() {
         .single()
 
       if (error) throw error
-      if (data) router.push(`/map/${data.id}`)
+      if (data) {
+        addToast('Report submitted successfully!', 'success')
+        router.push(`/map/${data.id}`)
+      }
     } catch (err) {
       console.error('Submit error:', err)
       alert('Failed to submit issue. Please try again.')

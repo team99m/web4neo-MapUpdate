@@ -19,7 +19,11 @@ export interface Database {
           avatar_url: string | null
           bio: string | null
           role: string
+          rank: string | null
+          email: string | null
+          is_banned: boolean
           department: string | null
+          line_user_id: string | null
           created_at: string
         }
         Insert: {
@@ -29,7 +33,11 @@ export interface Database {
           avatar_url?: string | null
           bio?: string | null
           role?: string
+          rank?: string | null
+          email?: string | null
+          is_banned?: boolean
           department?: string | null
+          line_user_id?: string | null
           created_at?: string
         }
         Update: {
@@ -39,7 +47,11 @@ export interface Database {
           avatar_url?: string | null
           bio?: string | null
           role?: string
+          rank?: string | null
+          email?: string | null
+          is_banned?: boolean
           department?: string | null
+          line_user_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -93,7 +105,14 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "issues_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       posts: {
         Row: {
@@ -132,6 +151,7 @@ export interface Database {
         Row: {
           id: string
           user_id: string
+          post_id: string | null
           parent_type: string
           parent_id: string
           content: string
@@ -140,6 +160,7 @@ export interface Database {
         Insert: {
           id?: string
           user_id: string
+          post_id?: string | null
           parent_type: string
           parent_id: string
           content: string
@@ -148,6 +169,7 @@ export interface Database {
         Update: {
           id?: string
           user_id?: string
+          post_id?: string | null
           parent_type?: string
           parent_id?: string
           content?: string
@@ -260,6 +282,96 @@ export interface Database {
         }
         Relationships: []
       }
+      follows: {
+        Row: {
+          follower_id: string
+          following_id: string
+          created_at: string
+        }
+        Insert: {
+          follower_id: string
+          following_id: string
+          created_at?: string
+        }
+        Update: {
+          follower_id?: string
+          following_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      bookmarks: {
+        Row: {
+          user_id: string
+          post_id: string
+          created_at: string
+        }
+        Insert: {
+          user_id: string
+          post_id: string
+          created_at?: string
+        }
+        Update: {
+          user_id?: string
+          post_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          id: string
+          reporter_id: string
+          target_type: string
+          target_id: string
+          reason: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          reporter_id: string
+          target_type: string
+          target_id: string
+          reason: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          reporter_id?: string
+          target_type?: string
+          target_id?: string
+          reason?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          id: string
+          issue_id: string
+          user_id: string
+          rating: number
+          comment: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          issue_id: string
+          user_id: string
+          rating: number
+          comment?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          issue_id?: string
+          user_id?: string
+          rating?: number
+          comment?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       issue_timeline: {
         Row: {
           id: string
@@ -324,6 +436,10 @@ export type TransitRoute = Database['public']['Tables']['transit_routes']['Row']
 export type TransitStop = Database['public']['Tables']['transit_stops']['Row']
 export type Notification = Database['public']['Tables']['notifications']['Row']
 export type IssueTimeline = Database['public']['Tables']['issue_timeline']['Row']
+export type Bookmark = Database['public']['Tables']['bookmarks']['Row']
+export type Report = Database['public']['Tables']['reports']['Row']
+export type Follow = Database['public']['Tables']['follows']['Row']
+export type Review = Database['public']['Tables']['reviews']['Row']
 
 // --- Domain Enums (for app-level type safety) ---
 

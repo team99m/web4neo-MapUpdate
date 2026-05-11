@@ -4,6 +4,7 @@
   "nav.report": "Report",
   "nav.feed": "Feed",
   "nav.transit": "Transit",
+  "nav.notifications": "Notifications",
 
   "issue.status.open": "Open",
   "issue.status.in_progress": "In Progress",

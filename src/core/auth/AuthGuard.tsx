@@ -10,6 +10,8 @@ interface AuthGuardProps {
   requiredRole?: string[]
   /** Custom redirect path. Defaults to /login */
   redirectTo?: string
+  /** Explicitly allow a specific username even if role doesn't match */
+  allowUsername?: string
 }
 
 /**
@@ -22,7 +24,7 @@ interface AuthGuardProps {
  *     <AdminPage />
  *   </AuthGuard>
  */
-export function AuthGuard({ children, requiredRole, redirectTo = '/login' }: AuthGuardProps) {
+export function AuthGuard({ children, requiredRole, redirectTo = '/login', allowUsername }: AuthGuardProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
 
@@ -34,23 +36,29 @@ export function AuthGuard({ children, requiredRole, redirectTo = '/login' }: Aut
       return
     }
 
-    if (requiredRole && !requiredRole.includes(user.role)) {
+    const hasRole = requiredRole ? requiredRole.includes(user.role) : true
+    const isAllowedUser = allowUsername ? user.username === allowUsername : false
+
+    if (!hasRole && !isAllowedUser) {
       router.replace('/')
       return
     }
-  }, [user, loading, requiredRole, redirectTo, router])
+  }, [user, loading, requiredRole, redirectTo, router, allowUsername])
 
   // Show nothing while checking auth
   if (loading) {
     return null
   }
 
-  // Not authenticated or wrong role
+  // Not authenticated
   if (!user) {
     return null
   }
 
-  if (requiredRole && !requiredRole.includes(user.role)) {
+  const hasRole = requiredRole ? requiredRole.includes(user.role) : true
+  const isAllowedUser = allowUsername ? user.username === allowUsername : false
+
+  if (!hasRole && !isAllowedUser) {
     return null
   }
 

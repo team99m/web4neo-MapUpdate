@@ -33,6 +33,7 @@
 
   /* Neutral palette */
   --color-bg: #FFFFFF;
+  --color-bg-primary: #FFFFFF;
   --color-bg-secondary: #F5F5F4;
   --color-bg-tertiary: #EBEBEA;
   --color-surface: #FFFFFF;
@@ -102,6 +103,7 @@
   /* Bottom nav height (for page padding) */
   --bottom-nav-height: 80px;
   --header-height: 60px;
+  --sidebar-width: 260px;
 }
 
 /* --- Base Reset --- */
@@ -234,6 +236,18 @@ ul, ol {
 }
 
 /* --- Layout Helpers --- */
+
+/* App Shell — flex container for sidebar + main on desktop */
+.app-shell {
+  display: flex;
+  min-height: 100dvh;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .main-content {
   padding-top: var(--header-height);
   min-height: 100dvh;
@@ -250,6 +264,26 @@ ul, ol {
 .page-full {
   width: 100%;
   height: calc(100dvh - var(--header-height) - var(--bottom-nav-height));
+}
+
+/* Desktop: shift content right for the fixed sidebar */
+@media (min-width: 768px) {
+  .app-main {
+    margin-left: var(--sidebar-width);
+  }
+
+  .main-content {
+    padding-top: var(--header-height);
+  }
+
+  .page-container {
+    max-width: 640px;
+    padding-bottom: var(--space-8);
+  }
+
+  .page-full {
+    height: calc(100dvh - var(--header-height));
+  }
 }
 
 /* Visually hidden but accessible */

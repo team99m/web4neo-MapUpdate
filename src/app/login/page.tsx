@@ -10,7 +10,7 @@ import Link from 'next/link'
 import styles from './page.module.css'
 
 export default function LoginPage() {
-  const { user, login, demoLogin, loading: authLoading } = useAuth()
+  const { user, login, demoLogin, lineLogin, loading: authLoading } = useAuth()
   const { t } = useTranslation()
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -120,6 +120,32 @@ export default function LoginPage() {
         >
           Try Demo Version
         </Button>
+
+        {lineLogin && (
+          <>
+            <div className={styles.divider}>
+              <span>--- หรือ ---</span>
+            </div>
+
+            <Button 
+              type="button" 
+              size="lg" 
+              style={{ backgroundColor: '#06C755', color: 'white', width: '100%' }}
+              onClick={async () => {
+                setLoading(true)
+                try {
+                  await lineLogin()
+                } catch (err) {
+                  setError('LINE login failed')
+                  setLoading(false)
+                }
+              }}
+            >
+              <span style={{ marginRight: '8px' }}>💬</span>
+              เข้าสู่ระบบด้วย LINE
+            </Button>
+          </>
+        )}
 
         <p className={styles.switchText}>
           {t('auth.no_account')}{' '}

@@ -8,10 +8,16 @@ import { Avatar } from './Avatar'
 import { SideMenu } from '@/core/components/SideMenu'
 import styles from './Header.module.css'
 
+import { usePathname } from 'next/navigation'
+
 export function Header() {
+  const pathname = usePathname()
   const { user } = useAuth()
   const { t } = useTranslation()
   const [isMenuOpen, setMenuOpen] = useState(false)
+
+  // Hide global header on the Create Post page
+  if (pathname === '/post/new') return null
 
   return (
     <>

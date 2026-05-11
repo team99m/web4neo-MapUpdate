@@ -1,89 +1,47 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { AuthGuard } from '@/core/auth/AuthGuard'
 import { useAuth } from '@/core/auth/useAuth'
 import { supabase } from '@/core/supabase/client'
-import type { Issue, IssueStatus } from '@/core/supabase/types'
+import type { IssueStatus } from '@/core/types/issue'
 import { Badge } from '@/core/components/Badge'
 import { Spinner } from '@/core/components/Spinner'
 import { formatDateTime } from '@/core/utils/formatDate'
-import { useToast } from '@/app/providers'
+import { useIssues } from '@/core/hooks/useIssues'
 import Link from 'next/link'
 import styles from './page.module.css'
 
 export default function DashboardPage() {
   const { user } = useAuth()
-  const addToast = useToast()
-  
-  const [issues, setIssues] = useState<Issue[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filterStatus, setFilterStatus] = useState<string>('all')
-
-  const fetchIssues = async () => {
-    try {
-      setLoading(true)
-      let query = supabase
-        .from('issues')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (filterStatus !== 'all') {
-        query = query.eq('status', filterStatus)
-      }
-
-      // If user has a department, we could optionally filter by it here
-      // if (user?.department) {
-      //   query = query.eq('department', user.department)
-      // }
-
-      const { data, error } = await query
-      if (error) throw error
-      
-      setIssues(data as Issue[])
-    } catch (err) {
-      console.error(err)
-      addToast('Failed to load issues', 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    if (user) {
-      fetchIssues()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, filterStatus])
+  const { issues, filter, setStatus, loading, refetch } = useIssues()
 
   const handleStatusChange = async (issueId: string, newStatus: IssueStatus) => {
     try {
-      // Optimistic UI update
-      setIssues(prev => prev.map(issue => 
-        issue.id === issueId ? { ...issue, status: newStatus } : issue
-      ))
-
       const { error } = await supabase
         .from('issues')
         .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq('id', issueId)
 
-      if (error) {
-        // Revert on error
-        await fetchIssues()
-        throw error
-      }
+      if (error) throw error
       
-      addToast(`Issue marked as ${newStatus.replace('_', ' ')}`, 'success')
+      // Add timeline entry
+      await supabase.from('issue_timeline').insert({
+        issue_id: issueId,
+        status: newStatus,
+        changed_by: user?.id,
+        note: `Status changed to ${newStatus.replace('_', ' ')}`
+      })
+
+      refetch()
     } catch (err) {
-      console.error(err)
-      addToast('Failed to update status', 'error')
+      console.error('Update status error:', err)
+      alert('Failed to update status')
     }
   }
 
   return (
     <AuthGuard requiredRole={['staff', 'admin']}>
-      <div className="page-container">
+      <div className="page-container" id="staff-dashboard">
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>Department Inbox</h1>
@@ -94,8 +52,8 @@ export default function DashboardPage() {
           
           <select 
             className={styles.filterSelect}
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            value={filter.status}
+            onChange={(e) => setStatus(e.target.value as any)}
           >
             <option value="all">All Statuses</option>
             <option value="open">Open</option>
