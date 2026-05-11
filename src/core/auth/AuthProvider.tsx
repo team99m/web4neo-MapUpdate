@@ -46,6 +46,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /** Initialize — check existing session */
   useEffect(() => {
+    // Safety timeout: Never stay in loading state for more than 3 seconds
+    const safetyTimeout = setTimeout(() => {
+      console.log('Auth safety timeout triggered - force resolving loading state')
+      setLoading(false)
+    }, 3000)
+
     const initAuth = async () => {
       // Whitelist paths that don't require authentication or are part of the OAuth flow
       const pathname = window.location.pathname
@@ -79,6 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Auth init error:', err)
       } finally {
         setLoading(false)
+        clearTimeout(safetyTimeout)
       }
     }
 
@@ -97,6 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             await supabase.auth.signOut()
             setUser(null)
             setLoading(false)
+            clearTimeout(safetyTimeout)
             return
           }
 
@@ -130,11 +138,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         // Always resolve loading state on any auth event
         setLoading(false)
+        clearTimeout(safetyTimeout)
       }
     )
 
     return () => {
       subscription.unsubscribe()
+      clearTimeout(safetyTimeout)
     }
   }, [fetchProfile])
 
