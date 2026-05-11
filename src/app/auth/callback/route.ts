@@ -32,13 +32,29 @@ export async function GET(request: Request) {
         },
       }
     )
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error && data.session) {
+      const user = data.session.user
+      // Sync profile for LINE users
+      const lineIdentity = user.identities?.find(id => id.provider === 'custom:line')
+      if (lineIdentity) {
+        const lineUserId = lineIdentity.identity_data?.sub
+        const displayName = lineIdentity.identity_data?.full_name || lineIdentity.identity_data?.name
+        
+        await supabase.from('profiles').upsert({
+          id: user.id,
+          username: displayName ?? `line_${lineUserId?.substring(0, 8) || user.id.substring(0, 8)}`,
+          display_name: displayName || 'LINE User',
+          line_user_id: lineUserId,
+          role: 'citizen'
+        } as any, { onConflict: 'id' })
+      }
+      
       return NextResponse.redirect(new URL('/map', request.url))
     }
-    console.error('Auth callback error:', error)
+    if (error) console.error('Auth callback error:', error)
     return NextResponse.redirect(
-      new URL(`/login?error=true&message=${encodeURIComponent(error.message)}`, request.url)
+      new URL(`/login?error=true&message=${encodeURIComponent(error?.message || 'Exchange failed')}`, request.url)
     )
   }
 

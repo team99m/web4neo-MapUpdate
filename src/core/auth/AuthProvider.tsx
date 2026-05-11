@@ -28,7 +28,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
 
   /** Fetch profile from Supabase and merge with auth user */
-  const fetchProfile = useCallback(async (userId: string, email: string): Promise<AuthUser | null> => {
+  const fetchProfile = useCallback(async (userId: string, email?: string | null): Promise<AuthUser | null> => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const profile = data as Profile
     return {
       ...profile,
-      email,
+      email: email || null,
     }
   }, [])
 

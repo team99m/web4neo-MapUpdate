@@ -2,7 +2,6 @@ import type { Profile } from '@/core/supabase/types'
 
 /** Auth session user — extends Profile with auth metadata */
 export interface AuthUser extends Profile {
-  email: string
 }
 
 /** Auth context value exposed by AuthProvider */
