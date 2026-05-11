@@ -3,86 +3,89 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const code = searchParams.get('code')
+  const requestUrl = new URL(request.url)
+  const code = requestUrl.searchParams.get('code')
+  const error = requestUrl.searchParams.get('error')
+  const errorDescription = requestUrl.searchParams.get('error_description')
   
-  console.log('--- Auth Callback Start ---')
-  console.log('URL:', request.url)
-  console.log('Code present:', !!code)
-
-  if (code) {
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              )
-            } catch (err) {
-              console.error('Cookie setAll error:', err)
-            }
-          },
-        },
-      }
-    )
-
-    console.log('Exchanging code for session...')
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    console.log('Exchange result - Error:', error ? error.message : 'none')
-    console.log('Exchange result - Session present:', !!data.session)
-
-    if (!error && data.session) {
-      const user = data.session.user
-      console.log('User ID:', user.id)
-      
-      // Sync profile for LINE users
-      const lineIdentity = user.identities?.find(id => id.provider === 'custom:line')
-      if (lineIdentity) {
-        console.log('LINE Identity found, syncing profile...')
-        const lineUserId = lineIdentity.identity_data?.sub
-        const displayName = lineIdentity.identity_data?.full_name || lineIdentity.identity_data?.name
-        
-        const { error: upsertError } = await supabase.from('profiles').upsert({
-          id: user.id,
-          username: displayName ?? `line_${lineUserId?.substring(0, 8) || user.id.substring(0, 8)}`,
-          display_name: displayName || 'LINE User',
-          line_user_id: lineUserId,
-          role: 'citizen'
-        } as any, { onConflict: 'id' })
-
-        if (upsertError) console.error('Profile upsert error:', upsertError)
-      }
-      
-      console.log('Redirecting to /map')
-      return NextResponse.redirect(new URL('/map', request.url))
-    }
-    
+  console.log('=== AUTH CALLBACK DEBUG ===')
+  console.log('Full URL:', request.url)
+  console.log('Code:', code ? 'EXISTS' : 'MISSING')
+  console.log('Error param:', error)
+  console.log('Error description:', errorDescription)
+  console.log('Search params:', requestUrl.search)
+  
+  if (!code) {
+    console.log('No code found in query parameters.')
     if (error) {
-      console.error('Auth callback error detail:', error)
+      console.log('Redirecting to login with error:', errorDescription || error)
       return NextResponse.redirect(
-        new URL(`/login?error=true&message=${encodeURIComponent(error.message)}`, request.url)
+        new URL(`/login?error=true&message=${encodeURIComponent(errorDescription || error)}`, request.url)
       )
     }
+    console.log('Redirecting to login (fallback).')
+    return NextResponse.redirect(new URL('/login', request.url))
   }
+  
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch (err) {
+            console.error('Cookie setAll error:', err)
+          }
+        },
+      },
+    }
+  )
 
-  // If no code, check if there's an error in the URL (Supabase often passes errors this way)
-  const errorParam = searchParams.get('error')
-  const errorDescription = searchParams.get('error_description')
-  if (errorParam) {
-    console.error('Supabase returned error in URL:', errorParam, errorDescription)
+  console.log('Exchanging code for session...')
+  const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+  
+  console.log('Exchange result data:', JSON.stringify(data))
+  if (exchangeError) {
+    console.log('Exchange failed:', exchangeError.message)
     return NextResponse.redirect(
-      new URL(`/login?error=true&message=${encodeURIComponent(errorDescription || errorParam)}`, request.url)
+      new URL(`/login?error=true&message=${encodeURIComponent(exchangeError.message)}`, request.url)
     )
   }
+  
+  if (data.session) {
+    console.log('Success - session established for user:', data.session.user.id)
+    
+    // Sync profile for LINE users
+    const user = data.session.user
+    const lineIdentity = user.identities?.find(id => id.provider === 'custom:line')
+    if (lineIdentity) {
+      console.log('Syncing LINE profile...')
+      const lineUserId = lineIdentity.identity_data?.sub
+      const displayName = lineIdentity.identity_data?.full_name || lineIdentity.identity_data?.name
+      
+      const { error: upsertError } = await supabase.from('profiles').upsert({
+        id: user.id,
+        username: displayName ?? `line_${lineUserId?.substring(0, 8) || user.id.substring(0, 8)}`,
+        display_name: displayName || 'LINE User',
+        line_user_id: lineUserId,
+        role: 'citizen'
+      } as any, { onConflict: 'id' })
 
-  console.log('Fallback: Redirecting to /login')
+      if (upsertError) console.error('Profile sync error:', upsertError)
+    }
+    
+    console.log('Redirecting to /map')
+    return NextResponse.redirect(new URL('/map', request.url))
+  }
+
+  console.log('No session in data after exchange - redirecting to login.')
   return NextResponse.redirect(new URL('/login', request.url))
 }
