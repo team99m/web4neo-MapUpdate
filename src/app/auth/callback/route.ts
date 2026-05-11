@@ -3,6 +3,9 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const code = searchParams.get('code')
+  
   console.log('--- Auth Callback Start ---')
   console.log('URL:', request.url)
   console.log('Code present:', !!code)
@@ -62,7 +65,12 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/map', request.url))
     }
     
-    if (error) console.error('Auth callback error detail:', error)
+    if (error) {
+      console.error('Auth callback error detail:', error)
+      return NextResponse.redirect(
+        new URL(`/login?error=true&message=${encodeURIComponent(error.message)}`, request.url)
+      )
+    }
   }
 
   // If no code, check if there's an error in the URL (Supabase often passes errors this way)
@@ -76,17 +84,5 @@ export async function GET(request: Request) {
   }
 
   console.log('Fallback: Redirecting to /login')
-  return NextResponse.redirect(new URL('/login', request.url))
-}
-
-  // If no code, check if there's an error in the URL (Supabase often passes errors this way)
-  const error = searchParams.get('error')
-  const errorDescription = searchParams.get('error_description')
-  if (error) {
-    return NextResponse.redirect(
-      new URL(`/login?error=true&message=${encodeURIComponent(errorDescription || error)}`, request.url)
-    )
-  }
-
   return NextResponse.redirect(new URL('/login', request.url))
 }
