@@ -67,9 +67,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
             if (!isWhitelistPath) window.location.href = '/login'
           } else {
             setUser(profile)
+            // Auto-redirect if on login page
+            if (pathname === '/login' || pathname === '/map/login') {
+              window.location.href = '/map'
+            }
           }
         } else if (!isWhitelistPath) {
-          // If no session and not on a whitelist path, redirect to the main login page
           window.location.href = '/login'
         }
       } catch (err) {
@@ -84,10 +87,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
+        console.log('Auth state change event:', event)
+        
+        if (session?.user) {
           // Sync profile
           const profile = await fetchProfile(session.user.id, session.user.email || '')
           
+          if (profile?.is_banned) {
+            await supabase.auth.signOut()
+            setUser(null)
+            setLoading(false)
+            return
+          }
+
           // Handle LINE user synchronization if identity is present
           const lineIdentity = session.user.identities?.find(id => id.provider === 'custom:line')
           if (lineIdentity) {
@@ -96,23 +108,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
             
             await supabase.from('profiles').upsert({
               id: session.user.id,
-              username: displayName ?? 'LINE User',
+              username: displayName ?? `line_${lineUserId?.substring(0, 8) || session.user.id.substring(0, 8)}`,
+              display_name: displayName || 'LINE User',
               line_user_id: lineUserId,
               role: 'citizen'
             } as any, { onConflict: 'id' })
           }
 
-          if (profile?.is_banned) {
-            await supabase.auth.signOut()
-            setUser(null)
-          } else {
-            // Re-fetch profile to get latest data including potentially new LINE user id
-            const updatedProfile = await fetchProfile(session.user.id, session.user.email || '')
-            setUser(updatedProfile)
+          // Fetch the updated profile and set user
+          const updatedProfile = await fetchProfile(session.user.id, session.user.email || '')
+          setUser(updatedProfile)
+          
+          // Redirect to map if just signed in and on login page
+          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && 
+              (window.location.pathname === '/login' || window.location.pathname === '/map/login')) {
+            window.location.href = '/map'
           }
-        } else if (event === 'SIGNED_OUT') {
+        } else {
           setUser(null)
         }
+        
+        // Always resolve loading state on any auth event
+        setLoading(false)
       }
     )
 
