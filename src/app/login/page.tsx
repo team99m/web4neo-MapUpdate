@@ -1,85 +1,74 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/core/auth/useAuth'
-import { useTranslation } from '@/core/i18n/useTranslation'
-import { Button } from '@/core/components/Button'
-import { Spinner } from '@/core/components/Spinner'
-import Link from 'next/link'
-import styles from './page.module.css'
+import { useState } from 'react'
 import { supabase } from '@/core/supabase/client'
+import styles from './page.module.css'
 
 export default function LoginPage() {
-  console.log('LOGIN PAGE LOADED - src/app/login/page.tsx')
-  const { user, googleLogin, demoLogin, loading: authLoading } = useAuth()
-  const { t } = useTranslation()
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  // Supabase connection test
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data, error }) => {
-      console.log('Supabase connection test:')
-      console.log('Session:', data?.session)
-      console.log('Error:', error?.message)
-    })
-  }, [])
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (user && !authLoading) {
-      if (user.role === 'admin' || user.role === 'staff') {
-        router.replace('/dashboard')
-      } else {
-        router.replace('/home')
-      }
-    }
-  }, [user, authLoading, router])
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Sign In clicked')
-    console.log('Email:', email)
-    setError('')
     setLoading(true)
+    setError('')
 
-    try {
-      const { data, error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-      console.log('Sign In result:', data?.user?.email)
-      console.log('Sign In error:', loginError?.message)
-
-      if (loginError) throw loginError
-      
-      // Hard redirect — bypasses React router and prevents re-renders
-      window.location.href = '/map'
-    } catch (err: any) {
-      console.error('Sign In failed:', err.message)
-      setError(err.message)
+    if (error) {
+      setError(error.message)
       setLoading(false)
+      return
+    }
+
+    if (data.user) {
+      window.location.href = '/map'
     }
   }
 
-  // Show nothing while checking initial auth to prevent flash of login form
-  if (authLoading || user) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: 'var(--color-bg)'
-      }}>
-        <Spinner size="lg" />
-      </div>
-    )
+  const handleGoogleLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'https://web4neo-map-update.vercel.app/auth/callback'
+      }
+    })
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    if (data.url) {
+      window.location.href = data.url
+    }
+  }
+
+  const handleDemoLogin = async () => {
+    setLoading(true)
+    setError('')
+    const randomId = crypto.randomUUID().split('-')[0]
+    const demoEmail = `demo-${randomId}@web4neo.local`
+    const demoPassword = crypto.randomUUID()
+
+    const { error } = await supabase.auth.signUp({
+      email: demoEmail,
+      password: demoPassword,
+      options: { data: { username: `DemoUser_${randomId}` } }
+    })
+
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+      return
+    }
+
+    window.location.href = '/map'
   }
 
   return (
@@ -92,11 +81,11 @@ export default function LoginPage() {
           <p className={styles.subtitle}>Welcome back to your civic platform</p>
         </div>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
-          {error && <div className={styles.error}>{error}</div>}
+        {error && <div className={styles.error}>{error}</div>}
 
+        <form className={styles.form} onSubmit={handleEmailLogin}>
           <div className={styles.field}>
-            <label htmlFor="email" className={styles.label}>{t('auth.email')}</label>
+            <label htmlFor="email" className={styles.label}>Email</label>
             <input
               id="email"
               type="email"
@@ -110,7 +99,7 @@ export default function LoginPage() {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="password" className={styles.label}>{t('auth.password')}</label>
+            <label htmlFor="password" className={styles.label}>Password</label>
             <input
               id="password"
               type="password"
@@ -123,16 +112,18 @@ export default function LoginPage() {
             />
           </div>
 
-          <Button type="submit" loading={loading} size="lg" className={styles.submitBtn}>
-            {t('auth.login')}
-          </Button>
+          <button
+            type="submit"
+            disabled={loading}
+            className={styles.submitBtn}
+          >
+            {loading ? 'กำลังเข้าสู่ระบบ...' : 'Sign In'}
+          </button>
 
-          <Button 
-            type="button" 
-            variant="secondary" 
-            size="lg" 
+          <button
+            type="button"
             className={styles.googleBtn}
-            onClick={() => googleLogin()}
+            onClick={handleGoogleLogin}
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -141,37 +132,25 @@ export default function LoginPage() {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
             <span>เข้าสู่ระบบด้วย Google</span>
-          </Button>
+          </button>
         </form>
 
         <div className={styles.divider}>
           <span>OR</span>
         </div>
 
-        <Button 
-          type="button" 
-          variant="secondary" 
-          size="lg" 
+        <button
+          type="button"
           className={styles.demoBtn}
-          loading={loading}
-          onClick={async () => {
-            setLoading(true)
-            try {
-              await demoLogin()
-            } catch (err) {
-              setError('Demo login failed')
-              setLoading(false)
-            }
-          }}
+          disabled={loading}
+          onClick={handleDemoLogin}
         >
           Try Demo Version
-        </Button>
+        </button>
 
         <p className={styles.switchText}>
-          {t('auth.no_account')}{' '}
-          <Link href="/register" className={styles.switchLink}>
-            {t('auth.register')}
-          </Link>
+          Don&apos;t have an account?{' '}
+          <a href="/register" className={styles.switchLink}>Register</a>
         </p>
       </div>
     </div>

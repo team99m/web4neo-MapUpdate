@@ -5,7 +5,7 @@ export interface AuthUser extends Profile {
   email: string
 }
 
-/** Auth context value exposed by AuthProvider */
+/** Auth context value exposed by useAuth (compatibility layer) */
 export interface AuthContextValue {
   user: AuthUser | null
   loading: boolean
