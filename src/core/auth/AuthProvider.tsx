@@ -13,6 +13,8 @@ import { useRouter, usePathname } from 'next/navigation'
 export const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
+  isAuthenticating: false,
+  setIsAuthenticating: () => {},
   login: async () => {},
   googleLogin: async () => {},
   demoLogin: async () => {},
@@ -31,6 +33,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -108,7 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /** Handle global redirects */
   useEffect(() => {
-    if (loading) return
+    if (loading || isAuthenticating) return
 
     const PUBLIC_PATHS = ['/login', '/register', '/auth/callback', '/map']
 
@@ -125,7 +128,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         router.push('/login')
       }
     }
-  }, [user, loading, pathname, router])
+  }, [user, loading, isAuthenticating, pathname, router])
 
   /** Sign in with email/password */
   const login = useCallback(async (email: string, password: string) => {
@@ -207,7 +210,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, googleLogin, demoLogin, register, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      isAuthenticating, 
+      setIsAuthenticating, 
+      login, 
+      googleLogin, 
+      demoLogin, 
+      register, 
+      logout 
+    }}>
       {children}
     </AuthContext.Provider>
   )
