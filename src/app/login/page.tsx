@@ -11,6 +11,7 @@ import styles from './page.module.css'
 import { supabase } from '@/core/supabase/client'
 
 export default function LoginPage() {
+  console.log('LOGIN PAGE LOADED - src/app/login/page.tsx')
   const { user, login, googleLogin, demoLogin, loading: authLoading } = useAuth()
   const { t } = useTranslation()
   const router = useRouter()

@@ -5,6 +5,9 @@ import { supabase } from '@/core/supabase/client'
 import type { AuthContextValue, AuthUser } from './types'
 import type { Profile } from '@/core/supabase/types'
 
+console.log('AUTH PROVIDER LOADED')
+console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+
 export const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
