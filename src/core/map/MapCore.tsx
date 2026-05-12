@@ -45,21 +45,18 @@ export function MapCore({
 }: MapCoreProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
-  const clusterRef = useRef<any>(null)
-  const initRef = useRef(false)
+  const markersLayerRef = useRef<L.LayerGroup | null>(null)
   const [ready, setReady] = useState(false)
 
   // Initialize map (client-side only)
   useEffect(() => {
-    const initMap = async () => {
-      if (initRef.current) return
-      initRef.current = true
+    let L: typeof import('leaflet')
 
-      const L = (await import('leaflet')).default
-      // Attach to window so leaflet.markercluster can find it
-      ;(window as any).L = L
+    const initMap = async () => {
+      L = await import('leaflet')
 
       // Fix default marker icons
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -85,18 +82,9 @@ export function MapCore({
         maxZoom: 19,
       }).addTo(map)
 
-      // Create markers cluster group
-      await import('leaflet.markercluster/dist/MarkerCluster.css')
-      await import('leaflet.markercluster/dist/MarkerCluster.Default.css')
-      await import('leaflet.markercluster')
-      
-      const cluster = (L as any).markerClusterGroup({
-        maxClusterRadius: 50,
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
-      })
-      map.addLayer(cluster)
-      clusterRef.current = cluster
+      // Create markers layer group
+      const markersLayer = L.layerGroup().addTo(map)
+      markersLayerRef.current = markersLayer
 
       // Map click handler
       if (onMapClick) {
@@ -145,11 +133,11 @@ export function MapCore({
 
   // Update markers when they change
   useEffect(() => {
-    if (!ready || !mapRef.current || !clusterRef.current) return
+    if (!ready || !mapRef.current || !markersLayerRef.current) return
 
     const L = require('leaflet') as typeof import('leaflet')
-    const cluster = clusterRef.current
-    cluster.clearLayers()
+    const layer = markersLayerRef.current
+    layer.clearLayers()
 
     markers.forEach((m) => {
       const statusColors: Record<string, string> = {
@@ -204,18 +192,7 @@ export function MapCore({
         marker.on('click', () => onMarkerClick(m.id))
       }
 
-      // Add popup for issues (from srcfriend logic)
-      if (m.type === 'issue') {
-        const popupHtml = `
-          <div style="padding:8px;font-family:Inter,sans-serif;min-width:200px;">
-            <div style="font-weight:600;font-size:14px;margin-bottom:4px;">${m.label || 'Issue'}</div>
-            <div style="font-size:12px;color:#6B6B6B;margin-bottom:8px;">Status: ${m.status}</div>
-            <button onclick="window.location.href='/map/${m.id}'" style="display:block;width:100%;text-align:center;padding:6px;background:#1D9E75;color:#fff;border-radius:6px;font-size:12px;font-weight:600;border:none;cursor:pointer;">View Details</button>
-          </div>`
-        marker.bindPopup(popupHtml, { maxWidth: 300 })
-      }
-
-      marker.addTo(cluster)
+      marker.addTo(layer)
     })
   }, [markers, ready, onMarkerClick])
 

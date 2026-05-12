@@ -23,7 +23,6 @@ export interface Database {
           email: string | null
           is_banned: boolean
           department: string | null
-          line_user_id: string | null
           created_at: string
         }
         Insert: {
@@ -37,7 +36,6 @@ export interface Database {
           email?: string | null
           is_banned?: boolean
           department?: string | null
-          line_user_id?: string | null
           created_at?: string
         }
         Update: {
@@ -51,7 +49,6 @@ export interface Database {
           email?: string | null
           is_banned?: boolean
           department?: string | null
-          line_user_id?: string | null
           created_at?: string
         }
         Relationships: []
@@ -105,14 +102,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "issues_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       posts: {
         Row: {
@@ -397,20 +387,7 @@ export interface Database {
           changed_at?: string
           note?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "issue_timeline_changed_by_fkey"
-            columns: ["changed_by"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "issue_timeline_issue_id_fkey"
-            columns: ["issue_id"]
-            referencedRelation: "issues"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
     }
     Views: {

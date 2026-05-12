@@ -219,14 +219,6 @@ export default function IssueDetailPage() {
     }
   }
 
-  const getImageUrl = (url: string) => {
-    if (!url) return ''
-    // If it's already a full URL, return it
-    if (url.startsWith('http')) return url
-    // Fallback for paths (shouldn't happen with new logic but good for backward compatibility)
-    return supabase.storage.from('issue-images').getPublicUrl(url).data.publicUrl
-  }
-
   if (loading) return <div className={styles.loading}>Loading issue…</div>
   if (!issue) return <div className={styles.loading}>Issue not found</div>
 
@@ -272,11 +264,11 @@ export default function IssueDetailPage() {
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Photos</h2>
         {hasAfterPhoto ? (
-          <BeforeAfterSlider before={getImageUrl(issue.images[0])} after={getImageUrl(issue.images[issue.images.length - 1])} />
+          <BeforeAfterSlider before={issue.images[0]} after={issue.images[issue.images.length - 1]} />
         ) : issue.images && issue.images.length > 0 ? (
           <div className={styles.gallery}>
             {issue.images.map((url: string, i: number) => (
-              <img key={i} src={getImageUrl(url)} alt={`Issue photo ${i + 1}`} className={styles.galleryImg} />
+              <img key={i} src={url} alt={`Issue photo ${i + 1}`} className={styles.galleryImg} />
             ))}
           </div>
         ) : (

@@ -9,9 +9,9 @@ export const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
   login: async () => {},
+  googleLogin: async () => {},
   demoLogin: async () => {},
   register: async () => {},
-  lineLogin: async () => {},
   logout: async () => {},
 })
 
@@ -28,7 +28,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
 
   /** Fetch profile from Supabase and merge with auth user */
-  const fetchProfile = useCallback(async (userId: string, email?: string | null): Promise<AuthUser | null> => {
+  const fetchProfile = useCallback(async (userId: string, email: string): Promise<AuthUser | null> => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -40,28 +40,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const profile = data as Profile
     return {
       ...profile,
-      email: email || null,
+      email,
     }
   }, [])
 
   /** Initialize — check existing session */
   useEffect(() => {
-    // Safety timeout: Never stay in loading state for more than 3 seconds
-    const safetyTimeout = setTimeout(() => {
-      console.log('Auth safety timeout triggered - force resolving loading state')
-      setLoading(false)
-    }, 3000)
-
     const initAuth = async () => {
-      // Whitelist paths that don't require authentication or are part of the OAuth flow
-      const pathname = window.location.pathname
-      const isWhitelistPath = 
-        pathname === '/map/login' || 
-        pathname === '/login' || 
-        pathname === '/auth/callback' ||
-        window.location.search.includes('code=') ||
-        window.location.search.includes('error=')
-
       try {
         const { data: { session } } = await supabase.auth.getSession()
 
@@ -70,22 +55,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (profile?.is_banned) {
             await supabase.auth.signOut()
             setUser(null)
-            if (!isWhitelistPath) window.location.href = '/login'
           } else {
             setUser(profile)
-            // Auto-redirect if on login page
-            if (pathname === '/login' || pathname === '/map/login') {
-              window.location.href = '/map'
-            }
           }
-        } else if (!isWhitelistPath) {
-          window.location.href = '/login'
         }
       } catch (err) {
         console.error('Auth init error:', err)
       } finally {
         setLoading(false)
-        clearTimeout(safetyTimeout)
       }
     }
 
@@ -94,57 +71,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change event:', event)
-        
-        if (session?.user) {
-          // Sync profile
+        if (event === 'SIGNED_IN' && session?.user) {
           const profile = await fetchProfile(session.user.id, session.user.email || '')
-          
           if (profile?.is_banned) {
             await supabase.auth.signOut()
             setUser(null)
-            setLoading(false)
-            clearTimeout(safetyTimeout)
-            return
+          } else {
+            setUser(profile)
           }
-
-          // Handle LINE user synchronization if identity is present
-          const lineIdentity = session.user.identities?.find(id => id.provider === 'custom:line')
-          if (lineIdentity) {
-            const lineUserId = lineIdentity.identity_data?.sub
-            const displayName = lineIdentity.identity_data?.full_name || lineIdentity.identity_data?.name
-            
-            await supabase.from('profiles').upsert({
-              id: session.user.id,
-              username: displayName ?? `line_${lineUserId?.substring(0, 8) || session.user.id.substring(0, 8)}`,
-              display_name: displayName || 'LINE User',
-              line_user_id: lineUserId,
-              role: 'citizen'
-            } as any, { onConflict: 'id' })
-          }
-
-          // Fetch the updated profile and set user
-          const updatedProfile = await fetchProfile(session.user.id, session.user.email || '')
-          setUser(updatedProfile)
-          
-          // Redirect to map if just signed in and on login page
-          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && 
-              (window.location.pathname === '/login' || window.location.pathname === '/map/login')) {
-            window.location.href = '/map'
-          }
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           setUser(null)
         }
-        
-        // Always resolve loading state on any auth event
-        setLoading(false)
-        clearTimeout(safetyTimeout)
       }
     )
 
     return () => {
       subscription.unsubscribe()
-      clearTimeout(safetyTimeout)
     }
   }, [fetchProfile])
 
@@ -152,6 +94,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+  }, [])
+
+  /** Sign in with Google */
+  const googleLogin = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    })
+    if (error) console.error('Google login error:', error)
   }, [])
 
   /** Register with email/password (Profile created via backend trigger) */
@@ -195,18 +148,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
-  /** LINE Login with OAuth */
-  const lineLogin = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'custom:line' as any, // Using 'custom:line' as per user request
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`, // Standard callback route
-        scopes: 'profile openid'
-      }
-    })
-    if (error) throw error
-  }, [])
-
   /** Sign out */
   const logout = useCallback(async () => {
     const { error } = await supabase.auth.signOut()
@@ -214,7 +155,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, demoLogin, register, lineLogin, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, googleLogin, demoLogin, register, logout }}>
       {children}
     </AuthContext.Provider>
   )
