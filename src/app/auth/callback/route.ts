@@ -29,19 +29,29 @@ export async function GET(request: Request) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
-      await supabase.from('profiles').upsert({
-        id: user.id,
-        email: user.email,
-        display_name: user.user_metadata?.full_name 
+      const googleName = user.user_metadata?.full_name 
                       ?? user.user_metadata?.name 
-                      ?? user.email?.split('@')[0] 
-                      ?? 'User',
-        avatar_url: user.user_metadata?.avatar_url ?? null,
-        username: user.user_metadata?.preferred_username
-                  ?? user.email?.split('@')[0]
-                  ?? 'user_' + user.id.slice(0, 8),
+                      ?? null
+      const googleAvatar = user.user_metadata?.avatar_url 
+                        ?? user.user_metadata?.picture 
+                        ?? null
+      const googleEmail = user.email ?? null
+      const username = googleEmail?.split('@')[0] ?? 'user_' + user.id.slice(0, 8)
+
+      console.log('Saving Google profile:', { googleName, googleAvatar, googleEmail })
+
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: user.id,
+        email: googleEmail,
+        username: username,
+        display_name: googleName,
+        avatar_url: googleAvatar,
         role: 'citizen'
       }, { onConflict: 'id' })
+
+      if (profileError) {
+        console.log('Profile save error:', profileError.message)
+      }
     }
   }
 
