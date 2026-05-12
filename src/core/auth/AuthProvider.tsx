@@ -46,6 +46,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /** Initialize — check existing session */
   useEffect(() => {
+    // Force stop loading after 3 seconds no matter what
+    const timeout = setTimeout(() => {
+      setLoading(false)
+    }, 3000)
+
     const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
@@ -63,6 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Auth init error:', err)
       } finally {
         setLoading(false)
+        clearTimeout(timeout)
       }
     }
 
@@ -79,14 +85,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
           } else {
             setUser(profile)
           }
+          setLoading(false)
         } else if (event === 'SIGNED_OUT') {
           setUser(null)
+          setLoading(false)
         }
       }
     )
 
     return () => {
       subscription.unsubscribe()
+      clearTimeout(timeout)
     }
   }, [fetchProfile])
 
@@ -98,13 +107,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /** Sign in with Google */
   const googleLogin = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    console.log('Google login clicked')
+    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback`
       }
     })
-    if (error) console.error('Google login error:', error)
+    
+    console.log('OAuth data:', data)
+    console.log('OAuth error:', error)
   }, [])
 
   /** Register with email/password (Profile created via backend trigger) */

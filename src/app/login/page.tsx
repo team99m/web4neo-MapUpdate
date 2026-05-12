@@ -46,7 +46,13 @@ export default function LoginPage() {
   // Show nothing while checking initial auth to prevent flash of login form
   if (authLoading || user) {
     return (
-      <div className={styles.authWrapper}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: 'var(--color-bg)'
+      }}>
         <Spinner size="lg" />
       </div>
     )
