@@ -42,14 +42,30 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Sign In clicked')
+    console.log('Email:', email)
     setError('')
     setLoading(true)
 
     try {
-      await login(email, password)
-      // The useEffect will handle the redirect once user state updates
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      // Instead of using the login wrapper, call supabase directly to see full result
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      console.log('Sign In result:', data?.user?.email)
+      console.log('Sign In error:', loginError?.message)
+
+      if (loginError) throw loginError
+      
+      // If success, the AuthProvider onAuthStateChange will handle user state
+      // but we can also manually redirect here to be safe
+      router.push('/map')
+    } catch (err: any) {
+      console.error('Sign In failed:', err.message)
+      setError(err.message)
+      alert(err.message)
       setLoading(false)
     }
   }
