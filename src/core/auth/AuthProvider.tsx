@@ -8,13 +8,10 @@ import type { Profile } from '@/core/supabase/types'
 console.log('AUTH PROVIDER LOADED')
 console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
 
-import { useRouter, usePathname } from 'next/navigation'
 
 export const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
-  isAuthenticating: false,
-  setIsAuthenticating: () => {},
   login: async () => {},
   googleLogin: async () => {},
   demoLogin: async () => {},
@@ -33,9 +30,6 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isAuthenticating, setIsAuthenticating] = useState(false)
-  const router = useRouter()
-  const pathname = usePathname()
 
   /** Fetch profile from Supabase and merge with auth user */
   const fetchProfile = useCallback(async (userId: string, email: string): Promise<AuthUser | null> => {
@@ -109,26 +103,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [fetchProfile])
 
-  /** Handle global redirects */
-  useEffect(() => {
-    if (loading || isAuthenticating) return
-
-    const PUBLIC_PATHS = ['/login', '/register', '/auth/callback', '/map']
-
-    // If logged in and on login/register page -> go to map
-    if (user && (pathname === '/login' || pathname === '/register')) {
-      router.push('/map')
-      return
-    }
-
-    // If NOT logged in and on protected page -> go to login
-    if (!user && !PUBLIC_PATHS.includes(pathname || '')) {
-      // Allow map access even if not logged in
-      if (pathname !== '/map') {
-        router.push('/login')
-      }
-    }
-  }, [user, loading, isAuthenticating, pathname, router])
 
   /** Sign in with email/password */
   const login = useCallback(async (email: string, password: string) => {
@@ -210,17 +184,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      isAuthenticating, 
-      setIsAuthenticating, 
-      login, 
-      googleLogin, 
-      demoLogin, 
-      register, 
-      logout 
-    }}>
+    <AuthContext.Provider value={{ user, loading, login, googleLogin, demoLogin, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

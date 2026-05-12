@@ -9,8 +9,6 @@ export interface AuthUser extends Profile {
 export interface AuthContextValue {
   user: AuthUser | null
   loading: boolean
-  isAuthenticating: boolean
-  setIsAuthenticating: (isAuth: boolean) => void
   login: (email: string, password: string) => Promise<void>
   googleLogin: () => Promise<void>
   demoLogin: () => Promise<void>

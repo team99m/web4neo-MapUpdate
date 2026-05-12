@@ -12,14 +12,7 @@ import { supabase } from '@/core/supabase/client'
 
 export default function LoginPage() {
   console.log('LOGIN PAGE LOADED - src/app/login/page.tsx')
-  const { 
-    user, 
-    login, 
-    googleLogin, 
-    demoLogin, 
-    loading: authLoading,
-    setIsAuthenticating 
-  } = useAuth()
+  const { user, googleLogin, demoLogin, loading: authLoading } = useAuth()
   const { t } = useTranslation()
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -53,10 +46,8 @@ export default function LoginPage() {
     console.log('Email:', email)
     setError('')
     setLoading(true)
-    setIsAuthenticating(true)
 
     try {
-      // Instead of using the login wrapper, call supabase directly to see full result
       const { data, error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -67,16 +58,12 @@ export default function LoginPage() {
 
       if (loginError) throw loginError
       
-      // If success, the AuthProvider onAuthStateChange will handle user state
-      // but we can also manually redirect here to be safe
-      router.push('/map')
+      // Hard redirect — bypasses React router and prevents re-renders
+      window.location.href = '/map'
     } catch (err: any) {
       console.error('Sign In failed:', err.message)
       setError(err.message)
-      alert(err.message)
       setLoading(false)
-    } finally {
-      setIsAuthenticating(false)
     }
   }
 
