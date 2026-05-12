@@ -17,11 +17,17 @@ export default function DashboardPage() {
 
   const handleStatusChange = async (issueId: string, newStatus: IssueStatus) => {
     try {
-      const { error } = await supabase
+      console.log('Attempting status update:', { issueId, newStatus, userRole: user?.role, userId: user?.id })
+      
+      const { data, error } = await supabase
         .from('issues')
         .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq('id', issueId)
+        .select()
 
+      console.log('Status update result:', data)
+      console.log('Status update error:', error?.message, 'code:', error?.code)
+      
       if (error) throw error
       
       // Add timeline entry
@@ -33,9 +39,9 @@ export default function DashboardPage() {
       })
 
       refetch()
-    } catch (err) {
-      console.error('Update status error:', err)
-      alert('Failed to update status')
+    } catch (err: any) {
+      console.error('Update status error:', err?.message || err)
+      alert(`Failed to update status: ${err?.message || 'Unknown error'}`)
     }
   }
 

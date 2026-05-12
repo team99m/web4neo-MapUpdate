@@ -185,6 +185,8 @@ export default function IssueDetailPage() {
       if (reason) updateData.reject_reason = reason
       
       const { error: updateError } = await supabase.from('issues').update(updateData).eq('id', issue.id)
+      
+      console.log('Status update result — error:', updateError?.message, 'code:', updateError?.code)
       if (updateError) throw updateError
 
       // Timeline entry
