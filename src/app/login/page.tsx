@@ -8,6 +8,7 @@ import { Button } from '@/core/components/Button'
 import { Spinner } from '@/core/components/Spinner'
 import Link from 'next/link'
 import styles from './page.module.css'
+import { supabase } from '@/core/supabase/client'
 
 export default function LoginPage() {
   const { user, login, googleLogin, demoLogin, loading: authLoading } = useAuth()
@@ -17,6 +18,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Supabase connection test
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data, error }) => {
+      console.log('Supabase connection test:')
+      console.log('Session:', data?.session)
+      console.log('Error:', error?.message)
+    })
+  }, [])
 
   // Redirect if already logged in
   useEffect(() => {
