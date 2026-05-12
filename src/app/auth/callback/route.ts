@@ -24,6 +24,25 @@ export async function GET(request: Request) {
     )
 
     await supabase.auth.exchangeCodeForSession(code)
+
+    // Save profile after successful login
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+      await supabase.from('profiles').upsert({
+        id: user.id,
+        email: user.email,
+        display_name: user.user_metadata?.full_name 
+                      ?? user.user_metadata?.name 
+                      ?? user.email?.split('@')[0] 
+                      ?? 'User',
+        avatar_url: user.user_metadata?.avatar_url ?? null,
+        username: user.user_metadata?.preferred_username
+                  ?? user.email?.split('@')[0]
+                  ?? 'user_' + user.id.slice(0, 8),
+        role: 'citizen'
+      }, { onConflict: 'id' })
+    }
   }
 
   return NextResponse.redirect(new URL('/map', request.url))

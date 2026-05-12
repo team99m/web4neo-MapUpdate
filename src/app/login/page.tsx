@@ -27,6 +27,14 @@ export default function LoginPage() {
     }
 
     if (data.user) {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        email: data.user.email,
+        username: data.user.email?.split('@')[0] ?? 'user',
+        display_name: data.user.email?.split('@')[0] ?? 'User',
+        role: 'citizen'
+      }, { onConflict: 'id' })
+
       window.location.href = '/map'
     }
   }
