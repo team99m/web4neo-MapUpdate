@@ -27,10 +27,14 @@ export async function GET(request: Request) {
 
     // Save profile after successful login
     const { data: { user } } = await supabase.auth.getUser()
+    
+    console.log('Full user metadata:', JSON.stringify(user?.user_metadata))
+    console.log('User identities:', JSON.stringify(user?.identities))
 
     if (user) {
       const googleName = user.user_metadata?.full_name 
                       ?? user.user_metadata?.name 
+                      ?? user.user_metadata?.preferred_username 
                       ?? null
       const googleAvatar = user.user_metadata?.avatar_url 
                         ?? user.user_metadata?.picture 
