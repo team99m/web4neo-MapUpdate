@@ -113,7 +113,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
+        redirectTo: 'https://web4neo-map-update.vercel.app/auth/callback'
       }
     })
     
