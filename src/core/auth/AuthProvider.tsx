@@ -146,7 +146,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     })
     
     console.log('OAuth data:', data)
+    console.log('OAuth URL:', data?.url)
     console.log('OAuth error:', error)
+
+    if (error) {
+      console.error('Google login error:', error)
+      return
+    }
+
+    if (data?.url) {
+      window.location.href = data.url
+    }
   }, [])
 
   /** Register with email/password (Profile created via backend trigger) */
